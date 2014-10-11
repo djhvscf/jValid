@@ -8,6 +8,7 @@
     'use strict'
     $.fn.jValid = function (options) {
 		
+		/* Development section
 		var RegEx = 
 		{
 			LetterMin :  '[a-z]',
@@ -39,27 +40,40 @@
 			JS : '/<script .+?src="(.+?.js(?:?v=d)*).+?script>/ig', //match all .js includes
 			CSS : '/<link .+?href="(.+?.css(?:?v=d)*).+?/>/ig', //match all .css includes
 		};
+		Development section*/
+		
+		var eventsType = {
+			keypress: 'keypress',
+			paste: 'paste',
+			after_paste: 'after_paste'
+		};
 		
 		var defaults = {  
-              regex:RegEx.LetterMin.toString(),
+              regex:'[a-z]',
+			  mask:'',
 			  negkey: true,
               live:true,
               events:'keypress paste'
 		};
 		
 		var options =  $.extend(defaults, options); 		
-		options.regex = RegEx[options.regex].toString();
+		//options.regex = RegEx[options.regex].toString();
 		var base = this;		
+		
+		function validMask () {
+			var input = (event.input) ? event.input : $(this);
+			var key = event.charCode ? event.charCode : event.keyCode ? event.keyCode : 0;
+			var string = String.fromCharCode(key);
+		}
 		
 		function valid (event) {
 
             var input = (event.input) ? event.input : $(this);
-            if (event.ctrlKey || event.altKey)
-			{
+            if (event.ctrlKey || event.altKey) {
 				return;
 			}
 			
-            if (event.type === 'keypress') {
+            if (event.type === eventsType.keypress.toString()) {
               var key = event.charCode ? event.charCode : event.keyCode ? event.keyCode : 0;
 
               // 8 = backspace, 9 = tab, 13 = enter, 35 = end, 36 = home, 37 = left, 39 = right, 46 = delete
@@ -70,7 +84,8 @@
               }
 			  
               var string = String.fromCharCode(key);
-              /*// if they pressed the defined negative key
+              /*Development section
+			  // if they pressed the defined negative key
               if (options.negkey) && string === options.negkey) {
                 // if there is already one at the beginning, remove it
                 if (input.val().substr(0, 1) === string) {
@@ -80,15 +95,17 @@
                   input.val(string + input.val()).change();
                 }
                 return false;
-              }*/
+              }
+			  Development section*/
+			  
               var regex = new RegExp(options.regex);
-            } else if (event.type === 'paste') {
+            } else if (event.type === eventsType.paste.toString()) {
               input.data('value_before_paste', event.target.value);
               setTimeout(function(){
                 valid({type:'after_paste', input:input});
               }, 1);
               return true;
-            } else if (event.type ==='after_paste') {
+            } else if (event.type === eventsType.after_paste.toString()) {
               var string = input.val();
               var regex = new RegExp('^('+options.regex+')+$');
             } else {
@@ -100,26 +117,49 @@
             } else if (typeof(options.feedback) === 'function') {
               options.feedback.call(this, string);
             }
-            if (event.type=='after_paste') input.val(input.data('value_before_paste'));
+            if (event.type === eventsType.after_paste.toString()) {
+				input.val(input.data('value_before_paste'));
+			}
             return false;
-          }
+          };
 		  
-		  var jquery_version = $.fn.jquery.split('.');
-          if (options.live) {
-            if (parseInt(jquery_version[0]) >= 1 && parseInt(jquery_version[1]) >= 7) {
-              $(this).on(options.events, valid); 
-            } else {
-              $(this).live(options.events, valid); 
-            }
-          } else {
-            return this.each(function() {  
-              var input = $(this);
-              if (parseInt(jquery_version[0]) >= 1 && parseInt(jquery_version[1]) >= 7) {
-                input.off(options.events).on(options.events, valid);
-              } else {
-                input.unbind(options.events).bind(options.events, valid);
-              }
-            });  
-          }
+		if(options.mask !== '' && options.regex !== '') {
+			$.error("You have to use only Regular Expression or Mask input!");
+		}
+		else {
+			var jqueryV = $.fn.jquery.split('.');
+			if (options.live) {
+				if (parseInt(jqueryV[0]) >= 1 && parseInt(jqueryV[1]) >= 7) {
+					if(options.regex !== '') {
+						$(this).on(options.events, valid); 
+					}else {
+						$(this).on(options.events, validMask); 
+					}
+				} else {
+					if(options.regex !== '') {
+						$(this).live(options.events, valid); 
+					}else {
+						$(this).live(options.events, validMask); 
+					}
+				}
+			} else {
+				return this.each(function() {
+					var input = $(this);
+					if (parseInt(jqueryV[0]) >= 1 && parseInt(jqueryV[1]) >= 7) {
+						if(options.regex !== '') {
+							input.off(options.events).on(options.events, valid);
+						}else {
+							input.off(options.events).on(options.events, validMask);
+						}
+					} else {
+						if(options.regex !== '') {
+							input.unbind(options.events).bind(options.events, valid);
+						}else {
+							input.unbind(options.events).bind(options.events, validMask);
+						}
+					}
+				});  
+			}
+		}
     };
 })(jQuery);
