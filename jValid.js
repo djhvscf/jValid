@@ -50,10 +50,11 @@
 		
 		var defaults = {  
               regex:'[a-z]',
-			  mask:'',
+			  //mask:'',
 			  negkey: true,
               live:true,
-              events:'keypress paste'
+              events:'keypress paste',
+			  onErrorFeedback: ''
 		};
 		
 		var options =  $.extend(defaults, options); 		
@@ -114,8 +115,8 @@
 
             if (regex.test(string)) {
               return true;
-            } else if (typeof(options.feedback) === 'function') {
-              options.feedback.call(this, string);
+            } else if (typeof(options.onErrorFeedback) === 'function') {
+              options.onErrorFeedback.call(this, string);
             }
             if (event.type === eventsType.after_paste.toString()) {
 				input.val(input.data('value_before_paste'));
@@ -123,7 +124,8 @@
             return false;
           };
 		  
-		if(options.mask !== '' && options.regex !== '') {
+		//if(options.mask !== '' && options.regex !== '') {
+		if(options.regex === '') {
 			$.error("You have to use only Regular Expression or Mask input!");
 		}
 		else {
