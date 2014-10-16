@@ -68,6 +68,7 @@ S: Only A-Z and a-z characters.
 */
 		
 		var options =  $.extend(defaults, options);
+		var maxCharac = options.regex.length;
 		//options.regex = RegEx[options.regex].toString();
 		
 		/*
@@ -131,12 +132,42 @@ S: Only A-Z and a-z characters.
 		/*
 		*	This functions validates if input value is valid with the mask
 		*/
-		function validMask() {
-			if(isValidMask("000-00S0")){
+		function validMask(event) {
+			if(isValidMask(options.regex)){
 			
+				var input, keyString, actualValue;
+				input = (event.input) ? event.input : $(this);
+				actualValue = input.val();
+				keyString = takeKeyCode(event);
+				if(typeof(keyString) === 'boolean') {
+					return keyString;
+				}
+				
+				if(actualValue.length <= maxCharac) {
+					if(options.regex.charAt(getPosition(actualValue)) === '0') {
+						return $.isNumeric(keyString);
+					} else if(options.regex.charAt(getPosition(actualValue)) === 'S') {
+						return new RegExp("[a-zA-Z]").test(keyString);
+					} else {
+						keyString = options.regex.charAt(getPosition(actualValue));
+						input.val(actualValue + options.regex.charAt(getPosition(actualValue)));
+						return false;
+					}
+				}else {
+					return false;
+				}
+				
 			} else {
 				$.error("You have to create a valid mask");
 			}
+		};
+		
+		function getPosition(keyString) {
+			return keyString.length;
+		};
+		
+		function getNextCharacterMask(actualValue) {
+			options.regex.charAt(getPosition(actualValue));
 		};
 		
 		/*
