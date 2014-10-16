@@ -1,6 +1,6 @@
 /* @version 1.0 jValid
  * @author Dennis Hernández - djhvscf
- * @webSite: 
+ * @webSite: http://djhvscf.github.io/Blog
  * jValid is a jQuery plugin that...
  */
 
@@ -50,56 +50,49 @@
 		
 		var defaults = {  
               regex:'[a-z]',
-			  //mask:'',
 			  negkey: true,
               live:true,
               events:'keypress paste',
 			  onErrorFeedback: ''
 		};
 		
-		var options =  $.extend(defaults, options); 		
+		var options =  $.extend(defaults, options);
 		//options.regex = RegEx[options.regex].toString();
-		var base = this;		
 		
-		function validMask () {
-			var input = (event.input) ? event.input : $(this);
-			var key = event.charCode ? event.charCode : event.keyCode ? event.keyCode : 0;
-			var string = String.fromCharCode(key);
-		}
-		
+		/*
+		*	This function valid the input value filled by the user
+		*	Return true if the value is correct, otherwise, false
+		*/
 		function valid (event) {
-
-            var input = (event.input) ? event.input : $(this);
+			var input, regex, keyString;
+			
+            input = (event.input) ? event.input : $(this);
             if (event.ctrlKey || event.altKey) {
 				return;
 			}
 			
             if (event.type === eventsType.keypress.toString()) {
-              var key = event.charCode ? event.charCode : event.keyCode ? event.keyCode : 0;
-
-              // 8 = backspace, 9 = tab, 13 = enter, 35 = end, 36 = home, 37 = left, 39 = right, 46 = delete
-              if (key === 8 || key === 9 || key === 13 || key === 35 || key === 36|| key === 37 || key === 39 || key === 46) {
-                if (event.charCode === 0 && event.keyCode === key) {
-					return true;             
-                }
-              }
+			
+				keyString = takeKeyCode(event);
+				if(typeof(keyString) === 'boolean'){
+					return keyString;
+				}
+				/*Development section
+				// if they pressed the defined negative key
+				if (options.negkey) && keyString === options.negkey) {
+					// if there is already one at the beginning, remove it
+					if (input.val().substr(0, 1) === keyString) {
+					input.val(input.val().substring(1, input.val().length)).change();
+					} else {
+					// it isn't there so add it to the beginning of the string
+					input.val(keyString + input.val()).change();
+					}
+					return false;
+				}
+				Development section*/
 			  
-              var string = String.fromCharCode(key);
-              /*Development section
-			  // if they pressed the defined negative key
-              if (options.negkey) && string === options.negkey) {
-                // if there is already one at the beginning, remove it
-                if (input.val().substr(0, 1) === string) {
-                  input.val(input.val().substring(1, input.val().length)).change();
-                } else {
-                  // it isn't there so add it to the beginning of the string
-                  input.val(string + input.val()).change();
-                }
-                return false;
-              }
-			  Development section*/
+              regex = new RegExp(options.regex);
 			  
-              var regex = new RegExp(options.regex);
             } else if (event.type === eventsType.paste.toString()) {
               input.data('value_before_paste', event.target.value);
               setTimeout(function(){
@@ -107,61 +100,69 @@
               }, 1);
               return true;
             } else if (event.type === eventsType.after_paste.toString()) {
-              var string = input.val();
-              var regex = new RegExp('^('+options.regex+')+$');
+              keyString = input.val();
+              regex = new RegExp('^('+options.regex+')+$');
             } else {
               return false;
             }
 
-            if (regex.test(string)) {
+            if (regex.test(keyString)) {
               return true;
             } else if (typeof(options.onErrorFeedback) === 'function') {
-              options.onErrorFeedback.call(this, string);
+              options.onErrorFeedback.call(this, keyString);
             }
             if (event.type === eventsType.after_paste.toString()) {
 				input.val(input.data('value_before_paste'));
 			}
             return false;
-          };
-		  
-		//if(options.mask !== '' && options.regex !== '') {
-		if(options.regex === '') {
-			$.error("You have to use only Regular Expression or Mask input!");
-		}
-		else {
-			var jqueryV = $.fn.jquery.split('.');
-			if (options.live) {
-				if (parseInt(jqueryV[0]) >= 1 && parseInt(jqueryV[1]) >= 7) {
-					if(options.regex !== '') {
-						$(this).on(options.events, valid); 
-					}else {
-						$(this).on(options.events, validMask); 
+		};
+		
+		/*
+		*	This function returns the value of the key pressed by the user
+		*/
+		function takeKeyCode(event){
+			
+			var key = event.charCode ? event.charCode : event.keyCode ? event.keyCode : 0;
+
+			// 8 = backspace, 9 = tab, 13 = enter, 35 = end, 36 = home, 37 = left, 39 = right, 46 = delete
+			if (key === 8 || key === 9 || key === 13 || key === 35 || key === 36|| key === 37 || key === 39 || key === 46) {
+				if (event.charCode === 0 && event.keyCode === key) {
+					return true;
+				}
+			}
+            
+			return String.fromCharCode(key);
+		};
+		
+		/*
+		*	This function verify the jQuery version and bind the event to input object
+		*/
+		function verifyjQueryVersion(inputObject) {
+			if(options.regex === '') {
+				$.error("You have to give the Regular expression!");
+			} else {
+				var jqueryV, input;
+				jqueryV = $.fn.jquery.split('.');
+				input = $(inputObject);
+				
+				if (options.live) {
+					if (parseInt(jqueryV[0]) >= 1 && parseInt(jqueryV[1]) >= 7) {
+						input.on(options.events, valid);
+					} else {
+						input.live(options.events, valid);
 					}
 				} else {
-					if(options.regex !== '') {
-						$(this).live(options.events, valid); 
-					}else {
-						$(this).live(options.events, validMask); 
-					}
-				}
-			} else {
-				return this.each(function() {
-					var input = $(this);
-					if (parseInt(jqueryV[0]) >= 1 && parseInt(jqueryV[1]) >= 7) {
-						if(options.regex !== '') {
+					return inputObject.each(function() {
+						if (parseInt(jqueryV[0]) >= 1 && parseInt(jqueryV[1]) >= 7) {
 							input.off(options.events).on(options.events, valid);
-						}else {
-							input.off(options.events).on(options.events, validMask);
-						}
-					} else {
-						if(options.regex !== '') {
+						} else {
 							input.unbind(options.events).bind(options.events, valid);
-						}else {
-							input.unbind(options.events).bind(options.events, validMask);
 						}
-					}
-				});  
+					});
+				}
 			}
-		}
+		};
+		
+		verifyjQueryVersion(this);
     };
 })(jQuery);
