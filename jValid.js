@@ -56,6 +56,17 @@
 			  onErrorFeedback: ''
 		};
 		
+		var defaultsMask = ['0','S'];
+
+/*		
+Default Mask Legend
+0: Only Numbers.
+*9: Only Numbers but optional.
+*#: Only Numbers but recusive.
+*A: Numbers and Letters.
+S: Only A-Z and a-z characters.
+*/
+		
 		var options =  $.extend(defaults, options);
 		//options.regex = RegEx[options.regex].toString();
 		
@@ -118,6 +129,29 @@
 		};
 		
 		/*
+		*	This functions validates if input value is valid with the mask
+		*/
+		function validMask() {
+			if(isValidMask("000-00S0")){
+			
+			} else {
+				$.error("You have to create a valid mask");
+			}
+		};
+		
+		/*
+		*	This function validates if the input value correspond with mask created
+		*/
+		function isValidMask(mask) {
+			for(var i = 0; i < defaultsMask.length; i++) {
+				if(mask.indexOf(defaultsMask[i].toString()) === -1) {
+					return false;
+				}
+			}
+			return true;
+		};
+		
+		/*
 		*	This function returns the value of the key pressed by the user
 		*/
 		function takeKeyCode(event){
@@ -135,28 +169,47 @@
 		};
 		
 		/*
+		*	This function validates if the regular expression passed by user is correct
+		*/
+		function isRegExp(RegEx) {
+			try { 
+				new RegExp(RegEx);
+				return true;
+			}
+			catch(e) {
+				return false;
+			}
+		};
+		
+		/*
 		*	This function verify the jQuery version and bind the event to input object
 		*/
 		function verifyjQueryVersion(inputObject) {
 			if(options.regex === '') {
-				$.error("You have to give the Regular expression!");
+				$.error("You have to give the Regular expression or the mask to apply!");
 			} else {
-				var jqueryV, input;
+				var jqueryV, input, callback;
 				jqueryV = $.fn.jquery.split('.');
 				input = $(inputObject);
 				
+				if(isRegExp(options.regex)){
+					callback = validMask;
+				} else {
+					callback = validMask;
+				}
+				
 				if (options.live) {
 					if (parseInt(jqueryV[0]) >= 1 && parseInt(jqueryV[1]) >= 7) {
-						input.on(options.events, valid);
+						input.on(options.events, callback);
 					} else {
-						input.live(options.events, valid);
+						input.live(options.events, callback);
 					}
 				} else {
 					return inputObject.each(function() {
 						if (parseInt(jqueryV[0]) >= 1 && parseInt(jqueryV[1]) >= 7) {
-							input.off(options.events).on(options.events, valid);
+							input.off(options.events).on(options.events, callback);
 						} else {
-							input.unbind(options.events).bind(options.events, valid);
+							input.unbind(options.events).bind(options.events, callback);
 						}
 					});
 				}
