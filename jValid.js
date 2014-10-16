@@ -52,7 +52,7 @@
               regex:'[a-z]',
 			  negkey: true,
               live:true,
-              events:'keypress paste',
+              events:'keypress keyup paste',
 			  onErrorFeedback: ''
 		};
 		
