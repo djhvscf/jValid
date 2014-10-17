@@ -86,7 +86,7 @@
 			
             if (event.type === eventsType.keypress.toString()) {
 			
-				keyString = takeKeyCode(event);
+				keyString = getKeyCode(event);
 				if(typeof(keyString) === 'boolean'){
 					return keyString;
 				}
@@ -138,7 +138,7 @@
 			
 				var input = (event.input) ? event.input : $(this),
 					actualValue = input.val(),
-					keyString = takeKeyCode(event);
+					keyString = getKeyCode(event);
 					
 				if(typeof(keyString) === 'boolean') {
 					return keyString;
@@ -185,7 +185,7 @@
 		/*
 		*	This function returns the value of the key pressed by the user
 		*/
-		function takeKeyCode(event){
+		function getKeyCode(event){
 			
 			var key = event.charCode ? event.charCode : event.keyCode ? event.keyCode : 0;
 
