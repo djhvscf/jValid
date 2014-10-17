@@ -48,24 +48,24 @@
 			after_paste: 'after_paste'
 		};
 		
-		var defaults = {  
+		var defaults = {
               regex:'[a-z]',
+			  behaviorRegExp:  false,
 			  negkey: true,
               live:true,
               events:'keypress keyup paste',
 			  onErrorFeedback: ''
 		};
 		
+		/*		
+		Default Mask Legend
+		0: Only Numbers.
+		*9: Only Numbers but optional.
+		*#: Only Numbers but recusive.
+		*A: Numbers and Letters.
+		S: Only A-Z and a-z characters.
+		*/
 		var defaultsMask = ['0','S'];
-
-/*		
-Default Mask Legend
-0: Only Numbers.
-*9: Only Numbers but optional.
-*#: Only Numbers but recusive.
-*A: Numbers and Letters.
-S: Only A-Z and a-z characters.
-*/
 		
 		var options =  $.extend(defaults, options);
 		var maxCharac = options.regex.length;
@@ -76,9 +76,10 @@ S: Only A-Z and a-z characters.
 		*	Return true if the value is correct, otherwise, false
 		*/
 		function valid (event) {
-			var input, regex, keyString;
+			var input = (event.input) ? event.input : $(this), 
+				regex, 
+				keyString;
 			
-            input = (event.input) ? event.input : $(this);
             if (event.ctrlKey || event.altKey) {
 				return;
 			}
@@ -135,10 +136,10 @@ S: Only A-Z and a-z characters.
 		function validMask(event) {
 			if(isValidMask(options.regex)){
 			
-				var input, keyString, actualValue;
-				input = (event.input) ? event.input : $(this);
-				actualValue = input.val();
-				keyString = takeKeyCode(event);
+				var input = (event.input) ? event.input : $(this),
+					actualValue = input.val(),
+					keyString = takeKeyCode(event);
+					
 				if(typeof(keyString) === 'boolean') {
 					return keyString;
 				}
@@ -153,7 +154,7 @@ S: Only A-Z and a-z characters.
 						input.val(actualValue + options.regex.charAt(getPosition(actualValue)));
 						return false;
 					}
-				}else {
+				} else {
 					return false;
 				}
 				
@@ -162,12 +163,11 @@ S: Only A-Z and a-z characters.
 			}
 		};
 		
+		/*
+		*	This functions returns the actual position of the string
+		*/
 		function getPosition(keyString) {
 			return keyString.length;
-		};
-		
-		function getNextCharacterMask(actualValue) {
-			options.regex.charAt(getPosition(actualValue));
 		};
 		
 		/*
@@ -200,16 +200,26 @@ S: Only A-Z and a-z characters.
 		};
 		
 		/*
-		*	This function validates if the regular expression passed by user is correct
+		*	Working on it
 		*/
 		function isRegExp(RegEx) {
-			try { 
-				new RegExp(RegEx);
+			/*Development section
+			var parts = pattern.split('/'),
+			regex = pattern,
+			options = "";
+			if (parts.length > 1) {
+				regex = parts[1];
+				options = parts[2];
+			}
+			try {
+				new RegExp(regex, options);
 				return true;
+				//just remove this return and return true instead
 			}
 			catch(e) {
 				return false;
 			}
+			Development section*/
 		};
 		
 		/*
@@ -219,12 +229,11 @@ S: Only A-Z and a-z characters.
 			if(options.regex === '') {
 				$.error("You have to give the Regular expression or the mask to apply!");
 			} else {
-				var jqueryV, input, callback;
-				jqueryV = $.fn.jquery.split('.');
-				input = $(inputObject);
+				var jqueryV = $.fn.jquery.split('.'), 
+					input = $(inputObject), callback;
 				
-				if(isRegExp(options.regex)){
-					callback = validMask;
+				if(options.behaviorRegExp){
+					callback = valid;
 				} else {
 					callback = validMask;
 				}
