@@ -45,7 +45,8 @@
 		var eventsType = {
 			keypress: 'keypress',
 			paste: 'paste',
-			after_paste: 'after_paste'
+			after_paste: 'after_paste',
+			keyUp: 'keyup'
 		};
 		
 		var defaults = {
@@ -65,19 +66,99 @@
 		*A: Numbers and Letters.
 		S: Only A-Z and a-z characters.
 		*/
-		var defaultsMask = ['0','S'];
-		
-		var options =  $.extend(defaults, options);
-		var maxCharac = options.regex.length;
+		var defaultsMask = ['0','S'],
+			options =  $.extend(defaults, options),
+			maxCharac = options.regex.length,
+			base = $(this);
 		//options.regex = RegEx[options.regex].toString();
+		
+		
+		var sd = {
+			/*
+			*	This functions returns the actual position of the string
+			*/
+			getPosition: function (keyString) {
+				return keyString.length;
+			},
+			
+			/*
+			*	This function returns the value of the key pressed by the user
+			*/
+			getKeyCode: function (event){
+			
+				var key = event.charCode ? event.charCode : event.keyCode ? event.keyCode : 0;
+
+				// 8 = backspace, 9 = tab, 13 = enter, 35 = end, 36 = home, 37 = left, 39 = right, 46 = delete
+				if (key === 8 || key === 9 || key === 13 || key === 35 || key === 36|| key === 37 || key === 39 || key === 46) {
+					if (event.charCode === 0 && event.keyCode === key) {
+						return true;
+					}
+				}
+				
+				return String.fromCharCode(key);
+			},
+			
+			/*
+			*	This function validates if the input value correspond with mask created
+			*/
+			isValidMask: function (mask) {
+				for(var i = 0; i < defaultsMask.length; i++) {
+					if(mask.indexOf(defaultsMask[i].toString()) === -1) {
+						return false;
+					}
+				}
+				return true;
+			},
+			
+			/*
+			*	This functions get or set the value of the input
+			*/
+			inputVal: function (value) {
+				var isInput = base.is('input'),
+					method = isInput ? 'val' : 'text',
+					objReturn;
+
+				if (arguments.length > 0) {
+					base[method](value);
+					objReturn = base;
+				} else {
+					objReturn = base[method]();
+				}
+				
+				return objReturn;
+			},
+			
+			/*
+			*	Working on it
+			*/
+			isRegExp: function (RegEx) {
+				/*Development section
+				var parts = pattern.split('/'),
+				regex = pattern,
+				options = "";
+				if (parts.length > 1) {
+					regex = parts[1];
+					options = parts[2];
+				}
+				try {
+					new RegExp(regex, options);
+					return true;
+					//just remove this return and return true instead
+				}
+				catch(e) {
+					return false;
+				}
+				Development section*/
+			}
+			
+		};
 		
 		/*
 		*	This function valid the input value filled by the user
 		*	Return true if the value is correct, otherwise, false
 		*/
 		function valid (event) {
-			var input = (event.input) ? event.input : $(this), 
-				regex, 
+			var newRegex, 
 				keyString;
 			
             if (event.ctrlKey || event.altKey) {
@@ -86,7 +167,7 @@
 			
             if (event.type === eventsType.keypress.toString()) {
 			
-				keyString = getKeyCode(event);
+				keyString = sd.getKeyCode(event);
 				if(typeof(keyString) === 'boolean'){
 					return keyString;
 				}
@@ -94,38 +175,41 @@
 				// if they pressed the defined negative key
 				if (options.negkey) && keyString === options.negkey) {
 					// if there is already one at the beginning, remove it
-					if (input.val().substr(0, 1) === keyString) {
-					input.val(input.val().substring(1, input.val().length)).change();
+					if (sd.inputVal().substr(0, 1) === keyString) {
+					sd.inputVal(sd.inputVal().substring(1, sd.inputVal().length)).change();
 					} else {
 					// it isn't there so add it to the beginning of the string
-					input.val(keyString + input.val()).change();
+					sd.inputVal(keyString + sd.inputVal()).change();
 					}
 					return false;
 				}
 				Development section*/
 			  
-              regex = new RegExp(options.regex);
+              newRegex = new RegExp(options.regex);
 			  
             } else if (event.type === eventsType.paste.toString()) {
-              input.data('value_before_paste', event.target.value);
+              base.data('value_before_paste', event.target.value);
               setTimeout(function(){
-                valid({type:'after_paste', input:input});
+                valid({type:'after_paste', input:base});
               }, 1);
               return true;
             } else if (event.type === eventsType.after_paste.toString()) {
-              keyString = input.val();
-              regex = new RegExp('^('+options.regex+')+$');
-            } else {
+              keyString = sd.inputVal();
+              newRegex = new RegExp('^('+options.regex+')+$');
+            } else if (event.type === eventsType.keyUp.toString()) {
+				return true;
+				//Do something
+			} else {
               return false;
             }
 
-            if (regex.test(keyString)) {
+            if (newRegex.test(keyString)) {
               return true;
             } else if (typeof(options.onErrorFeedback) === 'function') {
               options.onErrorFeedback.call(this, keyString);
             }
             if (event.type === eventsType.after_paste.toString()) {
-				input.val(input.data('value_before_paste'));
+				sd.inputVal(base.data('value_before_paste'));
 			}
             return false;
 		};
@@ -134,92 +218,26 @@
 		*	This functions validates if input value is valid with the mask
 		*/
 		function validMask(event) {
-			if(isValidMask(options.regex)){
-			
-				var input = (event.input) ? event.input : $(this),
-					actualValue = input.val(),
-					keyString = getKeyCode(event);
-					
-				if(typeof(keyString) === 'boolean') {
-					return keyString;
-				}
+			var actualValue = sd.inputVal(),
+				keyString = sd.getKeyCode(event);
 				
-				if(actualValue.length <= maxCharac) {
-					if(options.regex.charAt(getPosition(actualValue)) === '0') {
-						return $.isNumeric(keyString);
-					} else if(options.regex.charAt(getPosition(actualValue)) === 'S') {
-						return new RegExp("[a-zA-Z]").test(keyString);
-					} else {
-						keyString = options.regex.charAt(getPosition(actualValue));
-						input.val(actualValue + options.regex.charAt(getPosition(actualValue)));
-						return false;
-					}
+			if(typeof(keyString) === 'boolean') {
+				return keyString;
+			}
+			
+			if(actualValue.length <= maxCharac) {
+				if(options.regex.charAt(sd.getPosition(actualValue)) === '0') {
+					return $.isNumeric(keyString);
+				} else if(options.regex.charAt(sd.getPosition(actualValue)) === 'S') {
+					return new RegExp("[a-zA-Z]").test(keyString);
 				} else {
+					keyString = options.regex.charAt(sd.getPosition(actualValue));
+					sd.inputVal(actualValue + options.regex.charAt(sd.getPosition(actualValue)));
 					return false;
 				}
-				
 			} else {
-				$.error("You have to create a valid mask");
-			}
-		};
-		
-		/*
-		*	This functions returns the actual position of the string
-		*/
-		function getPosition(keyString) {
-			return keyString.length;
-		};
-		
-		/*
-		*	This function validates if the input value correspond with mask created
-		*/
-		function isValidMask(mask) {
-			for(var i = 0; i < defaultsMask.length; i++) {
-				if(mask.indexOf(defaultsMask[i].toString()) === -1) {
-					return false;
-				}
-			}
-			return true;
-		};
-		
-		/*
-		*	This function returns the value of the key pressed by the user
-		*/
-		function getKeyCode(event){
-			
-			var key = event.charCode ? event.charCode : event.keyCode ? event.keyCode : 0;
-
-			// 8 = backspace, 9 = tab, 13 = enter, 35 = end, 36 = home, 37 = left, 39 = right, 46 = delete
-			if (key === 8 || key === 9 || key === 13 || key === 35 || key === 36|| key === 37 || key === 39 || key === 46) {
-				if (event.charCode === 0 && event.keyCode === key) {
-					return true;
-				}
-			}
-            
-			return String.fromCharCode(key);
-		};
-		
-		/*
-		*	Working on it
-		*/
-		function isRegExp(RegEx) {
-			/*Development section
-			var parts = pattern.split('/'),
-			regex = pattern,
-			options = "";
-			if (parts.length > 1) {
-				regex = parts[1];
-				options = parts[2];
-			}
-			try {
-				new RegExp(regex, options);
-				return true;
-				//just remove this return and return true instead
-			}
-			catch(e) {
 				return false;
 			}
-			Development section*/
 		};
 		
 		/*
@@ -235,7 +253,11 @@
 				if(options.behaviorRegExp){
 					callback = valid;
 				} else {
-					callback = validMask;
+					if(sd.isValidMask(options.regex)){
+						callback = validMask;
+					} else { 
+						$.error("You have to create a valid mask");
+					}
 				}
 				
 				if (options.live) {
@@ -256,6 +278,6 @@
 			}
 		};
 		
-		verifyjQueryVersion(this);
+		verifyjQueryVersion(base);
     };
 })(jQuery);
