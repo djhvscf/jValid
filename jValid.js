@@ -66,12 +66,13 @@
 		*A: Numbers and Letters.
 		S: Only A-Z and a-z characters.
 		*/
-		var defaultsMask = ['0','S'],
+		var defaultMasks = ['0','S'],
 			options =  $.extend(defaults, options),
 			maxCharac = options.regex.length,
+			globalRegExp = new RegExp("[a-zA-Z]", "ig"),
+			specialRegExp = new RegExp("[^a-zA-Z0-9]", "g"),
+			maskRegExp = new RegExp("[s0]", "ig"),
 			base = $(this);
-		//options.regex = RegEx[options.regex].toString();
-		
 		
 		var sd = {
 			/*
@@ -102,12 +103,7 @@
 			*	This function validates if the input value correspond with mask created
 			*/
 			isValidMask: function (mask) {
-				for(var i = 0; i < defaultsMask.length; i++) {
-					if(mask.indexOf(defaultsMask[i].toString()) === -1) {
-						return false;
-					}
-				}
-				return true;
+				return maskRegExp.test(mask.replace(specialRegExp, ""));
 			},
 			
 			/*
@@ -126,6 +122,78 @@
 				}
 				
 				return objReturn;
+			},
+			
+			/*
+			*	This function validate if a number is a number
+			*/
+			isNumeric: function(number) {
+				return $.isNumeric(number);
+			},
+			
+			getNextCharacter: function(valuefuture) {
+				var nextCharacter = options.regex.charAt(sd.getPosition(valuefuture));
+				if(sd.isSpecialCharacter(nextCharacter))
+				{
+					sd.inputVal(sd.inputVal() + nextCharacter);
+					return true;
+				}
+			},
+			
+			isSpecialCharacter: function(value) {
+				return specialRegExp.test(value);
+			},
+			
+			/*
+			*	This functions validate if an object is in an array
+			*/
+			contains: function(obj, array) {
+				for (var i = 0; i < array.length; i++) {
+					for(var j = 0; j < obj.length; j++) {
+						if (obj.charAt(j) === array[i]) {
+							return true;
+						}
+					}
+				}
+				return false;
+			},
+			
+			/*
+			*	This function verify the jQuery version and bind the event to input object
+			*/
+			verifyjQueryVersion: function (inputObject) {
+				if(options.regex === '') {
+					$.error("You have to give the Regular expression or the mask to apply!");
+				} else {
+					var jqueryV = $.fn.jquery.split('.'), 
+						input = $(inputObject), callback;
+					
+					if(options.behaviorRegExp){
+						callback = valid;
+					} else {
+						if(sd.isValidMask(options.regex)){
+							callback = validMask;
+						} else { 
+							$.error("You have to create a valid mask");
+						}
+					}
+					
+					if (options.live) {
+						if (parseInt(jqueryV[0]) >= 1 && parseInt(jqueryV[1]) >= 7) {
+							input.on(options.events, callback);
+						} else {
+							input.live(options.events, callback);
+						}
+					} else {
+						return inputObject.each(function() {
+							if (parseInt(jqueryV[0]) >= 1 && parseInt(jqueryV[1]) >= 7) {
+								input.off(options.events).on(options.events, callback);
+							} else {
+								input.unbind(options.events).bind(options.events, callback);
+							}
+						});
+					}
+				}
 			},
 			
 			/*
@@ -221,63 +289,44 @@
 			var actualValue = sd.inputVal(),
 				keyString = sd.getKeyCode(event);
 				
-			if(typeof(keyString) === 'boolean') {
-				return keyString;
+			if (event.ctrlKey || event.altKey) {
+				return;
 			}
 			
-			if(actualValue.length <= maxCharac) {
-				if(options.regex.charAt(sd.getPosition(actualValue)) === '0') {
-					return $.isNumeric(keyString);
-				} else if(options.regex.charAt(sd.getPosition(actualValue)) === 'S') {
-					return new RegExp("[a-zA-Z]").test(keyString);
+            if (event.type === eventsType.keypress.toString()) {
+				if(typeof(keyString) === 'boolean') {
+					return keyString;
+				}
+				
+				if(actualValue.length <= maxCharac) {
+					
+					switch (options.regex.charAt(sd.getPosition(actualValue))) {
+						case "0":
+							if(sd.isNumeric(keyString))
+							{
+								setTimeout(function(){
+									sd.getNextCharacter(actualValue + options.regex.charAt(sd.getPosition(actualValue)));
+								}, 1);
+								return true;
+							} else {
+								return false;
+							}
+							//return sd.isNumeric(keyString);
+						case "S":
+							return globalRegExp.test(keyString);
+						default:
+							sd.inputVal(actualValue + options.regex.charAt(sd.getPosition(actualValue)));
+							return false;
+					};
 				} else {
-					keyString = options.regex.charAt(sd.getPosition(actualValue));
-					sd.inputVal(actualValue + options.regex.charAt(sd.getPosition(actualValue)));
 					return false;
 				}
 			} else {
 				return false;
 			}
+			
 		};
 		
-		/*
-		*	This function verify the jQuery version and bind the event to input object
-		*/
-		function verifyjQueryVersion(inputObject) {
-			if(options.regex === '') {
-				$.error("You have to give the Regular expression or the mask to apply!");
-			} else {
-				var jqueryV = $.fn.jquery.split('.'), 
-					input = $(inputObject), callback;
-				
-				if(options.behaviorRegExp){
-					callback = valid;
-				} else {
-					if(sd.isValidMask(options.regex)){
-						callback = validMask;
-					} else { 
-						$.error("You have to create a valid mask");
-					}
-				}
-				
-				if (options.live) {
-					if (parseInt(jqueryV[0]) >= 1 && parseInt(jqueryV[1]) >= 7) {
-						input.on(options.events, callback);
-					} else {
-						input.live(options.events, callback);
-					}
-				} else {
-					return inputObject.each(function() {
-						if (parseInt(jqueryV[0]) >= 1 && parseInt(jqueryV[1]) >= 7) {
-							input.off(options.events).on(options.events, callback);
-						} else {
-							input.unbind(options.events).bind(options.events, callback);
-						}
-					});
-				}
-			}
-		};
-		
-		verifyjQueryVersion(base);
+		sd.verifyjQueryVersion(base);
     };
 })(jQuery);
