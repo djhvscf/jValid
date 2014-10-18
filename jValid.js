@@ -311,7 +311,6 @@
 							} else {
 								return false;
 							}
-							//return sd.isNumeric(keyString);
 						case "S":
 							return globalRegExp.test(keyString);
 						default:
