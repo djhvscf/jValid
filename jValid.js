@@ -69,9 +69,9 @@
 		var defaultMasks = ['0','S'],
 			options =  $.extend(defaults, options),
 			maxCharac = options.regex.length,
-			globalRegExp = new RegExp("[a-zA-Z]", "ig"),
+			globalRegExp = new RegExp("[a-zA-Z]"),
 			specialRegExp = new RegExp("[^a-zA-Z0-9]", "g"),
-			maskRegExp = new RegExp("[s0]", "ig"),
+			maskRegExp = new RegExp("[sS0]", "g"),
 			base = $(this);
 		
 		var sd = {
@@ -103,7 +103,14 @@
 			*	This function validates if the input value correspond with mask created
 			*/
 			isValidMask: function (mask) {
-				return maskRegExp.test(mask.replace(specialRegExp, ""));
+				var maskTemp = mask.replace(specialRegExp, "");
+				for(var i = 0; i < maskTemp.length; i++) {
+					if(maskRegExp.test(maskTemp.charAt(i)) === false) {
+						return false;
+					}
+				}
+				return true;
+				//return maskRegExp.test(mask.replace(specialRegExp, ""));
 			},
 			
 			/*
@@ -131,6 +138,9 @@
 				return $.isNumeric(number);
 			},
 			
+			/*
+			*	This function returns the next character if this is special character
+			*/
 			getNextCharacter: function(valuefuture) {
 				var nextCharacter = options.regex.charAt(sd.getPosition(valuefuture));
 				if(sd.isSpecialCharacter(nextCharacter))
@@ -140,8 +150,20 @@
 				}
 			},
 			
+			/*
+			*	This function returns true if the value is a special character, otherwise, false
+			*/
 			isSpecialCharacter: function(value) {
 				return specialRegExp.test(value);
+			},
+			
+			/*
+			*	This function calls a function
+			*/
+			callGetNextCharacter: function(value) {
+				setTimeout(function(){
+							sd.getNextCharacter(value);
+				}, 1);
 			},
 			
 			/*
@@ -304,15 +326,19 @@
 						case "0":
 							if(sd.isNumeric(keyString))
 							{
-								setTimeout(function(){
-									sd.getNextCharacter(actualValue + options.regex.charAt(sd.getPosition(actualValue)));
-								}, 1);
+								sd.callGetNextCharacter(actualValue + options.regex.charAt(sd.getPosition(actualValue)));
 								return true;
 							} else {
 								return false;
 							}
 						case "S":
-							return globalRegExp.test(keyString);
+							if(globalRegExp.test(keyString))
+							{
+								sd.callGetNextCharacter(actualValue + options.regex.charAt(sd.getPosition(actualValue)));
+								return true;
+							} else {
+								return false;
+							}
 						default:
 							sd.inputVal(actualValue + options.regex.charAt(sd.getPosition(actualValue)));
 							return false;
@@ -320,10 +346,12 @@
 				} else {
 					return false;
 				}
+			} else if (event.type === eventsType.keyUp.toString()) {
+				return true;
+				//Do something
 			} else {
 				return false;
 			}
-			
 		};
 		
 		sd.verifyjQueryVersion(base);
