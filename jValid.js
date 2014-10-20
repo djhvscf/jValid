@@ -8,40 +8,6 @@
     'use strict'
     $.fn.jValid = function (options) {
 		
-		/* Development section
-		var RegEx = 
-		{
-			LetterMin :  '[a-z]',
-			//UserName : '/^[a-z0-9_-]{3,16}$/',
-			//Password : '/^[a-z0-9_-]{6,18}$/',
-			//Hex : '/^#?([a-f0-9]{6}|[a-f0-9]{3})$/',
-			//Email : '/^([a-z0-9_\.-]+)@([\da-z\.-]+)\.([a-z\.]{2,6})$/',
-			//URL : '/^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/',
-			IP : '/^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/',
-			//HTML : '/^<([a-z]+)([^<]+)*(?:>(.*)<\/\1>|\s+\/>)$/',
-			USPhone : '/^(\+\d{1,2}\s)?\(?\d{3}\)?[\s.-]\d{3}[\s.-]\d{4}$',
-			Phone : '/^(\+0?1\s)?\(?\d{3}\)?[\s.-]\d{3}[\s.-]\d{4}$',
-			Float : '[-+]?([0-9]*.[0-9]+|[0-9]+)',
-			Int : '[0-9]',
-			ZeroTo255 : '^([01][0-9][0-9]|2[0-4][0-9]|25[0-5])$',
-			ZeroTo999 : '^([0-9]|[1-9][0-9]|[1-9][0-9][0-9])$',
-			OneTo50 : '/(^[1-9]{1}$|^[1-4]{1}[0-9]{1}$|^50$)/gm',
-			CreditCard : '^(?:4[0-9]{12}(?:[0-9]{3})?|5[1-5][0-9]{14}|6(?:011|5[0-9][0-9])[0-9]{12}|3[47][0-9]{13}|3(?:0[0-5]|[68][0-9])[0-9]{11}|(?:2131|1800|35d{3})d{11})$',
-			//Date : '/(d{1,2}/d{1,2}/d{4})/gm', //MatchDate (e.g. 21/3/2006)
-			MMDDYYYY : '^(0[1-9]|1[012])[- /.](0[1-9]|[12][0-9]|3[01])[- /.](19|20)dd$', //match date in format MM/DD/YYYY
-			DDMMYYYY : '^(0[1-9]|[12][0-9]|3[01])[- /.](0[1-9]|1[012])[- /.](19|20)dd$', //match date in format DD/MM/YYYY
-			Vowel : /[aeiou]/ig,
-			HTTP : '/(.*?)[^w{3}.]([a-zA-Z0-9]([a-zA-Z0-9-]{0,65}[a-zA-Z0-9])?.)+[a-zA-Z]{2,6}/igm', //match domain name (with HTTP)
-			WWW : '/[^w{3}.]([a-zA-Z0-9]([a-zA-Z0-9-]{0,65}[a-zA-Z0-9])?.)+[a-zA-Z]{2,6}/igm', //match domain name (www. only) 
-			Domain : '/(.*?).(com|net|org|info|coop|int|com.au|co.uk|org.uk|ac.uk|)/igm', //match domain name (alternative)
-			ImageGIFPNGJPG : '/([^s]+(?=.(jpg|gif|png)).2)/gm', //Match jpg, gif or png image
-			RGB : '/^rgb((d+),s*(d+),s*(d+))$/',
-			HexCode : '/(#?([A-Fa-f0-9]){3}(([A-Fa-f0-9]){3})?)/gm',
-			JS : '/<script .+?src="(.+?.js(?:?v=d)*).+?script>/ig', //match all .js includes
-			CSS : '/<link .+?href="(.+?.css(?:?v=d)*).+?/>/ig', //match all .css includes
-		};
-		Development section*/
-		
 		var eventsType = {
 			keypress: 'keypress',
 			paste: 'paste',
@@ -50,7 +16,7 @@
 		};
 		
 		var defaults = {
-              regex:'[a-z]',
+              regex:'S-S',
 			  behaviorRegExp:  false,
 			  negkey: true,
               live:true,
@@ -71,7 +37,6 @@
 			maxCharac = options.regex.length,
 			globalRegExp = new RegExp("[a-zA-Z]"),
 			specialRegExp = new RegExp("[^a-zA-Z0-9]", "g"),
-			maskRegExp = new RegExp("[sS0]", "g"),
 			base = $(this);
 		
 		var sd = {
@@ -105,12 +70,11 @@
 			isValidMask: function (mask) {
 				var maskTemp = mask.replace(specialRegExp, "");
 				for(var i = 0; i < maskTemp.length; i++) {
-					if(maskRegExp.test(maskTemp.charAt(i)) === false) {
+					if(maskTemp.charAt(i) !== "0" && maskTemp.charAt(i) !== "S") {
 						return false;
 					}
 				}
 				return true;
-				//return maskRegExp.test(mask.replace(specialRegExp, ""));
 			},
 			
 			/*
