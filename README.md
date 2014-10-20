@@ -24,9 +24,10 @@ This plugin has options and sets default values:
 * events:'keypress keyup paste',
 * onErrorFeedback: ''
 
-For more information about it:
+Examples
+=============
  
- http://djhvscf.github.io/Blog/
+ http://djhvscf.github.io/Blog/experiments/valid.html
 
 Dependencies
 =============
