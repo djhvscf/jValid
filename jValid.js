@@ -1,6 +1,6 @@
  /**
  * jvalid.js
- * @version: v1.0.1
+ * @version: v1.0.4
  * @author: Dennis Hernández
  * @webSite: http://djhvscf.github.io/Blog
  *
@@ -37,20 +37,22 @@
     'use strict'
     $.fn.jValid = function (options) {
 		
+		var defaults = {
+              regex:'S-S',
+			  behaviorRegExp:  false,
+              live:true,
+              events:'keypress keyup paste',
+			  ignoredKeys: [8, 9, 13, 35, 36, 37, 39, 46],
+			  onError: '',
+			  onComplete: '',
+			  onChanged: ''
+		};
+		
 		var eventsType = {
 			keypress: 'keypress',
 			paste: 'paste',
 			after_paste: 'after_paste',
 			keyUp: 'keyup'
-		};
-		
-		var defaults = {
-              regex:'S-S',
-			  behaviorRegExp:  false,
-			  negkey: true,
-              live:true,
-              events:'keypress keyup paste',
-			  onErrorFeedback: ''
 		};
 		
 		/*		
@@ -59,12 +61,14 @@
 		*9: Only Numbers but optional.
 		*#: Only Numbers but recusive.
 		*A: Numbers and Letters.
-		S: Only A-Z and a-z characters.
+		S: Only A-Z characters.
+		s: Only a-z characters.
 		*/
-		var defaultMasks = ['0','S'],
+		var defaultMasks = ['0', 'S', 's'],
 			options =  $.extend(defaults, options),
 			maxCharac = options.regex.length,
-			globalRegExp = new RegExp("[a-zA-Z]"),
+			globalRegExpMay = new RegExp("[A-Z]"),
+			globalRegExpMin = new RegExp("[a-z]"),
 			specialRegExp = new RegExp("[^a-zA-Z0-9]", "g"),
 			base = $(this);
 		
@@ -84,12 +88,12 @@
 				var key = event.charCode ? event.charCode : event.keyCode ? event.keyCode : 0;
 
 				// 8 = backspace, 9 = tab, 13 = enter, 35 = end, 36 = home, 37 = left, 39 = right, 46 = delete
-				if (key === 8 || key === 9 || key === 13 || key === 35 || key === 36|| key === 37 || key === 39 || key === 46) {
+				if(sd.inArray(key, options.ignoredKeys)) {
 					if (event.charCode === 0 && event.keyCode === key) {
 						return true;
 					}
 				}
-				
+
 				return String.fromCharCode(key);
 			},
 			
@@ -99,7 +103,7 @@
 			isValidMask: function (mask) {
 				var maskTemp = mask.replace(specialRegExp, "");
 				for(var i = 0; i < maskTemp.length; i++) {
-					if(maskTemp.charAt(i) !== "0" && maskTemp.charAt(i) !== "S") {
+					if(!sd.inArray(maskTemp.charAt(i), defaultMasks)) {
 						return false;
 					}
 				}
@@ -176,8 +180,15 @@
 			/*
 			*	This function returns the input value without special characters
 			*/
-			cleanValue: function() {
-				return sd.inputVal().replace(specialRegExp, "");			
+			cleanValue: function(whitespace) {
+				return sd.inputVal().replace(specialRegExp, whitespace ? " " : "");			
+			},
+			
+			/*
+			*	This function validates if the value exists in an array
+			*/
+			inArray: function(value, array) {
+				return $.inArray(value, array) === -1 ? false : true;
 			},
 			
 			/*
@@ -258,23 +269,10 @@
             if (event.type === eventsType.keypress.toString()) {
 			
 				keyString = sd.getKeyCode(event);
-				if(typeof(keyString) === 'boolean'){
+				if(typeof(keyString) === 'boolean') {
 					return keyString;
 				}
-				/*Development section
-				// if they pressed the defined negative key
-				if (options.negkey) && keyString === options.negkey) {
-					// if there is already one at the beginning, remove it
-					if (sd.inputVal().substr(0, 1) === keyString) {
-					sd.inputVal(sd.inputVal().substring(1, sd.inputVal().length)).change();
-					} else {
-					// it isn't there so add it to the beginning of the string
-					sd.inputVal(keyString + sd.inputVal()).change();
-					}
-					return false;
-				}
-				Development section*/
-			  
+				
               newRegex = new RegExp(options.regex);
 			  
             } else if (event.type === eventsType.paste.toString()) {
@@ -294,9 +292,9 @@
             }
 
             if (newRegex.test(keyString)) {
-              return true;
-            } else if (typeof(options.onErrorFeedback) === 'function') {
-              options.onErrorFeedback.call(this, keyString);
+				return true;
+            } else if (typeof(options.onError) === 'function') {
+				options.onError.call(this, keyString);
             }
             if (event.type === eventsType.after_paste.toString()) {
 				sd.inputVal(base.data('value_before_paste'));
@@ -324,16 +322,21 @@
 					
 					switch (options.regex.charAt(sd.getPosition(actualValue))) {
 						case "0":
-							if(sd.isNumeric(keyString))
-							{
+							if(sd.isNumeric(keyString)) {
 								sd.callGetNextCharacter(actualValue + options.regex.charAt(sd.getPosition(actualValue)));
 								return true;
 							} else {
 								return false;
 							}
 						case "S":
-							if(globalRegExp.test(keyString))
-							{
+							if(globalRegExpMay.test(keyString)) {
+								sd.callGetNextCharacter(actualValue + options.regex.charAt(sd.getPosition(actualValue)));
+								return true;
+							} else {
+								return false;
+							}
+						case "s":
+							if(globalRegExpMin.test(keyString)) {
 								sd.callGetNextCharacter(actualValue + options.regex.charAt(sd.getPosition(actualValue)));
 								return true;
 							} else {
@@ -356,8 +359,8 @@
 		
 		sd.verifyjQueryVersion(base);
 		
-		$.fn.cleanValue = function() {
-			return sd.cleanValue();
+		$.fn.cleanValue = function(whitespace) {
+			return sd.cleanValue(whitespace);
 		};
     };
 })(jQuery);
