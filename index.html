@@ -13,6 +13,10 @@ $(document).ready(function() {
  $('#text_field').jValid({regex:'0-0000-0000'});
  //$('#text_field').jValid({regex:'[A-Z0-9]', behaviorRegExp: true});
 });
+function getCleanValue()
+{
+	$(cleaned).val($('#text_field').cleanValue());
+}
 -->
 </script>
 </head>
@@ -70,6 +74,8 @@ h1
 </style>
 
 <input type="text" id="text_field">
+<input type="button" value="Get clean value!" onclick="getCleanValue();">
+<input type="text" id="cleaned" autocomplete="off">
 
 </body>
 </html>
