@@ -11,9 +11,9 @@ How to use it?
 
 Just add this in your html
 
-$(document).ready(function() {
- $('#test').jValid({regex:'0-0000-0000'});
-});
+	$(document).ready(function() {
+		$('#test').jValid({regex:'0-0000-0000'});
+	});
 
 This plugin has options and sets default values:
 
