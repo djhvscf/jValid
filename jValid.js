@@ -1,6 +1,6 @@
  /**
  * jvalid.js
- * @version: v1.0.4
+ * @version: v1.0.7
  * @author: Dennis Hernández
  * @webSite: http://djhvscf.github.io/Blog
  *
@@ -76,8 +76,15 @@
 			/*
 			*	This functions returns the actual position of the string
 			*/
-			getPosition: function (keyString) {
-				return keyString.length;
+			getPosition: function () {
+				var docSelection = document.selection,
+					selection = base.get(0).selectionStart;
+			
+				if (docSelection && !~navigator.appVersion.indexOf("MSIE 10")) {
+					return docSelection.createRange().moveStart('character', base.is("input") ? -base.val().length : -base.text().length).text.length;
+				} else if (selection || selection === 0) {
+					return selection;
+				}
 			},
 			
 			/*
@@ -138,10 +145,9 @@
 			/*
 			*	This function returns the next character if this is special character
 			*/
-			getNextCharacter: function(valuefuture) {
-				var nextCharacter = options.regex.charAt(sd.getPosition(valuefuture));
-				if(sd.isSpecialCharacter(nextCharacter))
-				{
+			getNextSpecialCharacter: function(valuefuture) {
+				var nextCharacter = options.regex.charAt(sd.getPosition());
+				if(sd.isSpecialCharacter(nextCharacter)) {
 					sd.inputVal(sd.inputVal() + nextCharacter);
 					return true;
 				}
@@ -158,23 +164,7 @@
 			*	This function calls a function
 			*/
 			callGetNextCharacter: function(value) {
-				setTimeout(function(){
-							sd.getNextCharacter(value);
-				}, 1);
-			},
-			
-			/*
-			*	This functions validate if an object is in an array
-			*/
-			contains: function(obj, array) {
-				for (var i = 0; i < array.length; i++) {
-					for(var j = 0; j < obj.length; j++) {
-						if (obj.charAt(j) === array[i]) {
-							return true;
-						}
-					}
-				}
-				return false;
+				setTimeout(function(){ sd.getNextSpecialCharacter(value); }, 1);
 			},
 			
 			/*
@@ -187,8 +177,37 @@
 			/*
 			*	This function validates if the value exists in an array
 			*/
-			inArray: function(value, array) {
-				return $.inArray(value, array) === -1 ? false : true;
+			inArray: function(obj, array) {
+				return $.inArray(obj, array) === -1 ? false : true;
+			},
+			
+			/*
+			*	
+			*/
+			getNextCharacter: function(currentPos) {
+				var actualVal = sd.inputVal();
+				if(currentPos <= actualVal.length) {
+					return actualVal.charAt(currentPos+1);
+				}
+			},
+			
+			/*
+			*
+			*/
+			reviewCharByChar: function(currentPos) {
+				var regex = options.regex;
+				var actualVal = sd.inputVal();
+				var actualValTemp = [];
+				
+				if(regex.charAt(0) === "0") {
+					if(sd.isSpecialCharacter(actualVal.charAt(0))) {
+						actualVal.insert(currentPos, sd.getNextCharacter(currentPos));
+					} else {
+					
+					}
+
+				}
+				
 			},
 			
 			/*
@@ -250,8 +269,7 @@
 					return false;
 				}
 				Development section*/
-			}
-			
+			}			
 		};
 		
 		/*
@@ -284,10 +302,7 @@
             } else if (event.type === eventsType.after_paste.toString()) {
               keyString = sd.inputVal();
               newRegex = new RegExp('^('+options.regex+')+$');
-            } else if (event.type === eventsType.keyUp.toString()) {
-				return true;
-				//Do something
-			} else {
+            } else {
               return false;
             }
 
@@ -320,40 +335,54 @@
 				
 				if(actualValue.length <= maxCharac) {
 					
-					switch (options.regex.charAt(sd.getPosition(actualValue))) {
+					switch (options.regex.charAt(sd.getPosition())) {
 						case "0":
 							if(sd.isNumeric(keyString)) {
-								sd.callGetNextCharacter(actualValue + options.regex.charAt(sd.getPosition(actualValue)));
+								sd.callGetNextCharacter(actualValue + options.regex.charAt(sd.getPosition()));
 								return true;
 							} else {
 								return false;
 							}
 						case "S":
 							if(globalRegExpMay.test(keyString)) {
-								sd.callGetNextCharacter(actualValue + options.regex.charAt(sd.getPosition(actualValue)));
+								sd.callGetNextCharacter(actualValue + options.regex.charAt(sd.getPosition()));
 								return true;
 							} else {
 								return false;
 							}
 						case "s":
 							if(globalRegExpMin.test(keyString)) {
-								sd.callGetNextCharacter(actualValue + options.regex.charAt(sd.getPosition(actualValue)));
+								sd.callGetNextCharacter(actualValue + options.regex.charAt(sd.getPosition()));
 								return true;
 							} else {
 								return false;
 							}
 						default:
-							sd.inputVal(actualValue + options.regex.charAt(sd.getPosition(actualValue)));
 							return false;
 					};
 				} else {
 					return false;
 				}
 			} else if (event.type === eventsType.keyUp.toString()) {
+				if(event.keyCode === 46 || event.keyCode === 8) {
+					//sd.reviewCharByChar(sd.getPosition());
+				}
 				return true;
 				//Do something
 			} else {
 				return false;
+			}
+		};
+		
+		String.prototype.replaceAt=function(index, character) {
+			return this.substr(0, index) + character + this.substr(index+character.length);
+		}
+		
+		String.prototype.insert = function (index, string) {
+			if (index > 0) {
+				return this.substring(0, index) + string + this.substring(index, this.length);
+			} else {
+				return string + this;
 			}
 		};
 		
