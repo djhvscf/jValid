@@ -147,6 +147,7 @@
 			*/
 			getNextSpecialCharacter: function(valuefuture) {
 				var nextCharacter = options.regex.charAt(sd.getPosition());
+				
 				if(sd.isSpecialCharacter(nextCharacter)) {
 					sd.inputVal(sd.inputVal() + nextCharacter);
 					return true;
@@ -187,27 +188,48 @@
 			getNextCharacter: function(currentPos) {
 				var actualVal = sd.inputVal();
 				if(currentPos <= actualVal.length) {
-					return actualVal.charAt(currentPos+1);
+					return actualVal.charAt(currentPos + 1);
 				}
 			},
-			
+						
 			/*
 			*
 			*/
 			reviewCharByChar: function(currentPos) {
-				var regex = options.regex;
-				var actualVal = sd.inputVal();
-				var actualValTemp = [];
-				
-				if(regex.charAt(0) === "0") {
-					if(sd.isSpecialCharacter(actualVal.charAt(0))) {
-						actualVal.insert(currentPos, sd.getNextCharacter(currentPos));
-					} else {
+				try {
+					var regex = options.regex,
+						actualVal = sd.inputVal(),
+						actualPos = sd.getPosition();
 					
+					for(var i = 0; i < regex.length; i++) {
+						
+						switch (regex.charAt(i)) {
+							case "0":
+								if(!sd.isNumeric(actualVal.charAt(actualPos))) {
+									var d  = actualVal.charAt(actualPos+1);
+									
+									sd.inputVal(sd.inputVal().replaceAt(actualVal.indexOf(d),' ').replace(" ", ""));
+									sd.inputVal(sd.inputVal().insert(actualPos, d));
+								
+								}
+								break;
+							case "S":
+								if(!globalRegExpMay.test(actualVal.charAt(i))) {
+									
+								}
+								break;
+							case "s":
+								if(!globalRegExpMin.test(actualVal.charAt(i))) {
+									
+								}
+								break;
+							default:
+								return false;
+						};					
 					}
-
+				} catch(e) {
+					console.log(e);
 				}
-				
 			},
 			
 			/*
@@ -333,7 +355,7 @@
 					return keyString;
 				}
 				
-				if(actualValue.length <= maxCharac) {
+				if(actualValue.length < maxCharac) {
 					
 					switch (options.regex.charAt(sd.getPosition())) {
 						case "0":
@@ -365,7 +387,7 @@
 				}
 			} else if (event.type === eventsType.keyUp.toString()) {
 				if(event.keyCode === 46 || event.keyCode === 8) {
-					//sd.reviewCharByChar(sd.getPosition());
+					sd.reviewCharByChar(sd.getPosition());
 				}
 				return true;
 				//Do something
