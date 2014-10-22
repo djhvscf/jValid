@@ -41,18 +41,16 @@
               regex:'S-S',
 			  behaviorRegExp:  false,
               live:true,
-              events:'keypress keyup paste',
 			  ignoredKeys: [8, 9, 13, 35, 36, 37, 39, 46],
 			  onError: '',
 			  onComplete: '',
 			  onChanged: ''
-		};
-		
-		var eventsType = {
+		}, 
+		defaultEvents = 'keypress paste',
+		eventsType = {
 			keypress: 'keypress',
 			paste: 'paste',
-			after_paste: 'after_paste',
-			keyUp: 'keyup'
+			after_paste: 'after_paste'
 		};
 		
 		/*		
@@ -254,16 +252,16 @@
 					
 					if (options.live) {
 						if (parseInt(jqueryV[0]) >= 1 && parseInt(jqueryV[1]) >= 7) {
-							input.on(options.events, callback);
+							input.on(defaultEvents, callback);
 						} else {
-							input.live(options.events, callback);
+							input.live(defaultEvents, callback);
 						}
 					} else {
 						return inputObject.each(function() {
 							if (parseInt(jqueryV[0]) >= 1 && parseInt(jqueryV[1]) >= 7) {
-								input.off(options.events).on(options.events, callback);
+								input.off(defaultEvents).on(options.events, callback);
 							} else {
-								input.unbind(options.events).bind(options.events, callback);
+								input.unbind(defaultEvents).bind(options.events, callback);
 							}
 						});
 					}
@@ -385,12 +383,6 @@
 				} else {
 					return false;
 				}
-			} else if (event.type === eventsType.keyUp.toString()) {
-				if(event.keyCode === 46 || event.keyCode === 8) {
-					sd.reviewCharByChar(sd.getPosition());
-				}
-				return true;
-				//Do something
 			} else {
 				return false;
 			}
