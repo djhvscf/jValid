@@ -6,6 +6,8 @@ A jQuery Plugin to make valid inputs on form fields and HTML elements
 
 Author Homepage:      http://djhvscf.github.io/Blog/<br />
 
+[![Build Status](https://travis-ci.org/djhvscf/jValid.svg?branch=master)](https://travis-ci.org/djhvscf/jValid)
+
 How to use it?
 ==============
 
