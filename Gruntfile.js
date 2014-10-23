@@ -5,7 +5,7 @@ module.exports = function(grunt) {
     // Project configuration.
     grunt.initConfig({
         // Metadata.
-        pkg: grunt.file.readJSON('bjvalid.jquery.json'),
+        pkg: grunt.file.readJSON('jvalid.jquery.json'),
         banner: '/*\n' +
                 '* <%= pkg.name %> - v<%= pkg.version %> - <%= grunt.template.today("yyyy-mm-dd") %>\n' +
                 '<%= pkg.homepage ? "* " + pkg.homepage : "" %>\n' +
