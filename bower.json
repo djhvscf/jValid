@@ -1,0 +1,28 @@
+{
+  "name": "jValid",
+  "version": "1.0.7",
+  "homepage": "https://github.com/djhvscf/jValid",
+  "authors": [
+    "zhixin <networksociales@hotmail.com>"
+  ],
+  "description": "A jQuery Plugin to make valid inputs on form fields and HTML elements",
+  "main": [
+      "src/jValid.js"
+  ],
+  "keywords": [
+    "jvalid",
+    "validation",
+    "jquery",
+	"plugin"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests",
+    "docs",
+    "assets"
+  ]
+}
