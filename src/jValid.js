@@ -1,6 +1,6 @@
  /**
  * jvalid.js
- * @version: v1.0.7
+ * @version: v1.0.8
  * @author: Dennis Hernández
  * @webSite: http://djhvscf.github.io/Blog
  *
@@ -181,7 +181,7 @@
 			},
 			
 			/*
-			*	
+			*	Working on it
 			*/
 			getNextCharacter: function(currentPos) {
 				var actualVal = sd.inputVal();
@@ -191,7 +191,7 @@
 			},
 						
 			/*
-			*
+			*	Working on it
 			*/
 			reviewCharByChar: function(currentPos) {
 				try {
@@ -231,13 +231,26 @@
 			},
 			
 			/*
+			*	This function destroys all the events associate with the DOM element
+			*/
+			destroyEvents: function(obj) {
+				var isInstantiated  = !! $.data(obj.get(0));
+			 
+				if (isInstantiated) {
+					$.removeData(obj.get(0));
+					obj.off(defaultEvents);
+					obj.unbind('.' + defaultEvents);
+				}
+			},
+			
+			/*
 			*	This function verify the jQuery version and bind the event to input object
 			*/
-			verifyjQueryVersion: function (inputObject) {
+			bindjValid: function (inputObject) {
 				if(options.regex === '') {
 					$.error("You have to give the Regular expression or the mask to apply!");
 				} else {
-					var jqueryV = $.fn.jquery.split('.'), 
+					var jqueryV = sd.getjQueryVersion(), 
 						input = $(inputObject), callback;
 					
 					if(options.behaviorRegExp){
@@ -259,13 +272,20 @@
 					} else {
 						return inputObject.each(function() {
 							if (parseInt(jqueryV[0]) >= 1 && parseInt(jqueryV[1]) >= 7) {
-								input.off(defaultEvents).on(options.events, callback);
+								input.off(defaultEvents).on(defaultEvents, callback);
 							} else {
-								input.unbind(defaultEvents).bind(options.events, callback);
+								input.unbind(defaultEvents).bind(defaultEvents, callback);
 							}
 						});
 					}
 				}
+			},
+			
+			/*
+			*	This function returns the jQuery version used
+			*/
+			getjQueryVersion: function () {
+				return $.fn.jquery.split('.');
 			},
 			
 			/*
@@ -400,10 +420,20 @@
 			}
 		};
 		
-		sd.verifyjQueryVersion(base);
+		sd.bindjValid(base);
 		
+		/*
+		*	Returns the value without mask or regular expression
+		*/
 		$.fn.cleanValue = function(whitespace) {
 			return sd.cleanValue(whitespace);
+		};
+		
+		/*
+		*	Destroys the events associated to DOM element
+		*/
+		$.fn.unjValid = function() {
+			sd.destroyEvents(this);
 		};
     };
 })(jQuery);
