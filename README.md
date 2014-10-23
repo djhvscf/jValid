@@ -33,7 +33,7 @@ Dependencies
 =============
 This plugin has these dependencies:
 
-* jquery-1.10.2.js
+* >=jquery-1.7js
 
 Repo Contents
 =============
