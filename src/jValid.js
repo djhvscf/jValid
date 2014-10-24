@@ -42,7 +42,7 @@
 			  behaviorRegExp:  false,
               live:true,
 			  ignoredKeys: [8, 9, 13, 35, 36, 37, 39, 46],
-			  placeholder: '_-____-____',
+			  placeholder: '',
 			  onError: '',
 			  onComplete: '',
 			  onChange: ''
@@ -65,8 +65,8 @@
 			globalRegExpMay = new RegExp("[A-Z]"),
 			globalRegExpMin = new RegExp("[a-z]"),
 			specialRegExp = new RegExp("[^a-zA-Z0-9]", "g"),
-			defaultEvents = 'keypress paste blur keyup',
-			eventsType = {keypress: 'keypress', paste: 'paste', after_paste: 'after_paste', blur: 'blur'},
+			defaultEvents = 'keydown paste blur keyup',
+			eventsType = {keydown: 'keydown', paste: 'paste', after_paste: 'after_paste', blur: 'blur'},
 			oldValue = '',
 			base = $(this);
 		
@@ -273,7 +273,7 @@
 				return;
 			}
 			
-            if (event.type === eventsType.keypress.toString()) {
+            if (event.type === eventsType.keydown.toString()) {
 			
 				keyString = sd.getKeyCode(event);
 				if(typeof(keyString) === 'boolean') {
@@ -317,7 +317,7 @@
 				return;
 			}
 			
-            //if (event.type === eventsType.keypress.toString()) {
+            //if (event.type === eventsType.keydown.toString()) {
 				if(typeof(keyString) === 'string') {
 					var buf = [], mlen = 0, vlen= 0, check = function () {
                         return mlen < maxCharac && vlen < actualValue.length;
@@ -381,6 +381,7 @@
 					} else {
 						return false;
 					}*/
+
 				} else {
 					return keyString;
 				}
