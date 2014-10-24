@@ -46,12 +46,6 @@
 			  onError: '',
 			  onComplete: '',
 			  onChange: ''
-		}, 
-		defaultEvents = 'keypress paste',
-		eventsType = {
-			keypress: 'keypress',
-			paste: 'paste',
-			after_paste: 'after_paste'
 		};
 		
 		/*		
@@ -63,12 +57,17 @@
 		S: Only A-Z characters.
 		s: Only a-z characters.
 		*/
-		var defaultMasks = ['0', 'S', 's'],
+		
+		var defaultMasks = {'0': {pattern: /\d/}, 'S': {pattern: /[A-Z]/}, 's': {pattern: /[a-z]/}},
+			defaultMasksArray = ['0', 'S', 's'],
 			options =  $.extend(defaults, options),
 			maxCharac = options.regex.length,
 			globalRegExpMay = new RegExp("[A-Z]"),
 			globalRegExpMin = new RegExp("[a-z]"),
 			specialRegExp = new RegExp("[^a-zA-Z0-9]", "g"),
+			defaultEvents = 'keypress paste blur keyup',
+			eventsType = {keypress: 'keypress', paste: 'paste', after_paste: 'after_paste', blur: 'blur'},
+			oldValue = '',
 			base = $(this);
 		
 		var sd = {
@@ -109,7 +108,7 @@
 			isValidMask: function (mask) {
 				var maskTemp = mask.replace(specialRegExp, "");
 				for(var i = 0; i < maskTemp.length; i++) {
-					if(!sd.inArray(maskTemp.charAt(i), defaultMasks)) {
+					if(!sd.inArray(maskTemp.charAt(i), defaultMasksArray)) {
 						return false;
 					}
 				}
@@ -144,12 +143,14 @@
 			/*
 			*	This function returns the next character if this is special character
 			*/
-			getNextSpecialCharacter: function(valuefuture) {
+			getNextSpecialCharacter: function() {
 				var nextCharacter = options.regex.charAt(sd.getPosition());
 				
 				if(sd.isSpecialCharacter(nextCharacter)) {
 					sd.inputVal(sd.inputVal() + nextCharacter);
 					return true;
+				} else {
+					return false;
 				}
 			},
 			
@@ -163,8 +164,8 @@
 			/*
 			*	This function calls a function
 			*/
-			callGetNextCharacter: function(value) {
-				setTimeout(function(){ sd.getNextSpecialCharacter(value); }, 1);
+			callGetNextCharacter: function() {
+				setTimeout(function(){ sd.getNextSpecialCharacter(); }, 1);
 			},
 			
 			/*
@@ -186,8 +187,7 @@
 			*/
 			callbacks: function (e) {
                 var val = sd.inputVal(),
-                    //changed = val !== old_value,
-                    changed = true,
+                    changed = val !== oldValue,
 					defaultArgs = [val, e, base, options],
                     callback = function(name, criteria, args) {
                         if (typeof(options[name]) === "function" && criteria) {
@@ -195,68 +195,17 @@
                         }
                     };
 
-                //callback('onChanged', changed === true, defaultArgs);
+                callback('onChange', changed === true, defaultArgs);
                 //callback('onKeyPress', changed === true, defaultArgs);
                 callback('onComplete', val.length === options.regex.length, defaultArgs);
                 //callback('onError', p.invalid.length > 0, [val, e, el, p.invalid, options]);
             },
-			
-			/*
-			*	Working on it
-			*/
-			getNextCharacter: function(currentPos) {
-				var actualVal = sd.inputVal();
-				if(currentPos <= actualVal.length) {
-					return actualVal.charAt(currentPos + 1);
-				}
-			},
 						
-			/*
-			*	Working on it
-			*/
-			reviewCharByChar: function(currentPos) {
-				try {
-					var regex = options.regex,
-						actualVal = sd.inputVal(),
-						actualPos = sd.getPosition();
-					
-					for(var i = 0; i < regex.length; i++) {
-						
-						switch (regex.charAt(i)) {
-							case "0":
-								if(!sd.isNumeric(actualVal.charAt(actualPos))) {
-									var d  = actualVal.charAt(actualPos+1);
-									
-									sd.inputVal(sd.inputVal().replaceAt(actualVal.indexOf(d),' ').replace(" ", ""));
-									sd.inputVal(sd.inputVal().insert(actualPos, d));
-								
-								}
-								break;
-							case "S":
-								if(!globalRegExpMay.test(actualVal.charAt(i))) {
-									
-								}
-								break;
-							case "s":
-								if(!globalRegExpMin.test(actualVal.charAt(i))) {
-									
-								}
-								break;
-							default:
-								return false;
-						};					
-					}
-				} catch(e) {
-					console.log(e);
-				}
-			},
-			
 			/*
 			*	This function destroys all the events associate with the DOM element
 			*/
 			destroyEvents: function(obj) {
 				var isInstantiated  = !! $.data(obj.get(0));
-			 
 				if (isInstantiated) {
 					$.removeData(obj.get(0));
 					obj.off(defaultEvents);
@@ -268,6 +217,7 @@
 			*	This function verify the jQuery version and bind the event to input object
 			*/
 			bindjValid: function (inputObject) {
+			
 				if(options.regex === '') {
 					$.error("You have to give the Regular expression or the mask to apply!");
 				} else {
@@ -308,30 +258,7 @@
 			*/
 			getjQueryVersion: function () {
 				return $.fn.jquery.split('.');
-			},
-			
-			/*
-			*	Working on it
-			*/
-			isRegExp: function (RegEx) {
-				/*Development section
-				var parts = pattern.split('/'),
-				regex = pattern,
-				options = "";
-				if (parts.length > 1) {
-					regex = parts[1];
-					options = parts[2];
-				}
-				try {
-					new RegExp(regex, options);
-					return true;
-					//just remove this return and return true instead
-				}
-				catch(e) {
-					return false;
-				}
-				Development section*/
-			}			
+			}
 		};
 		
 		/*
@@ -385,64 +312,85 @@
 		function validMask(event) {
 			var actualValue = sd.inputVal(),
 				keyString = sd.getKeyCode(event);
-			
+				
 			if (event.ctrlKey || event.altKey) {
 				return;
 			}
 			
-            if (event.type === eventsType.keypress.toString()) {
-				if(typeof(keyString) === 'boolean') {
+            //if (event.type === eventsType.keypress.toString()) {
+				if(typeof(keyString) === 'string') {
+					var buf = [], mlen = 0, vlen= 0, check = function () {
+                        return mlen < maxCharac && vlen < actualValue.length;
+                    };	
+
+						while(check()){				
+							var maskPattern = defaultMasks[options.regex.charAt(mlen)], vale = actualValue.charAt(vlen);
+								if(maskPattern)
+								{
+									if(vale.match(maskPattern.pattern)) {
+										if(actualValue.length < maxCharac) {
+											 sd.callGetNextCharacter();
+											 buf.push(vale);
+										} else {
+											return false;
+										}
+									} else { 
+									}
+								} else {
+								}	
+							mlen += 1;
+							vlen += 1;
+						}					
+					/*if(actualValue.length < maxCharac) {
+						/*var maskPattern = defaultMasks[options.regex.charAt(sd.getPosition())];
+						if(maskPattern)
+						{
+							if(keyString.match(maskPattern.pattern)) {
+								if(actualValue.length < maxCharac) {
+									return sd.callGetNextCharacter();
+								}
+							} else { 
+								return false;
+							}
+						} else {
+							return false;
+						}*/
+						
+						/*switch (options.regex.charAt(sd.getPosition())) {
+							case "0":
+								if(sd.isNumeric(keyString)) {
+									return sd.callGetNextCharacter();
+								} else {
+									return false;
+								}
+							case "S":
+								if(globalRegExpMay.test(keyString)) {
+									return sd.callGetNextCharacter();
+								} else {
+									return false;
+								}
+							case "s":
+								if(globalRegExpMin.test(keyString)) {
+									return sd.callGetNextCharacter();
+								} else {
+									return false;
+								}
+							default:
+								return false;
+						};
+					} else {
+						return false;
+					}*/
+				} else {
 					return keyString;
 				}
-				
-				if(actualValue.length < maxCharac) {
-					sd.callbacks(event);
-					switch (options.regex.charAt(sd.getPosition())) {
-						case "0":
-							if(sd.isNumeric(keyString)) {
-								sd.callGetNextCharacter(actualValue + options.regex.charAt(sd.getPosition()));
-								return true;
-							} else {
-								return false;
-							}
-						case "S":
-							if(globalRegExpMay.test(keyString)) {
-								sd.callGetNextCharacter(actualValue + options.regex.charAt(sd.getPosition()));
-								return true;
-							} else {
-								return false;
-							}
-						case "s":
-							if(globalRegExpMin.test(keyString)) {
-								sd.callGetNextCharacter(actualValue + options.regex.charAt(sd.getPosition()));
-								return true;
-							} else {
-								return false;
-							}
-						default:
-							return false;
-					};
-				} else {
-					return false;
-				}
-			} else {
-				return false;
+			//} else 
+			if (event.type === eventsType.blur.toString()) {
+				oldValue = sd.inputVal();
 			}
+			
+			sd.callbacks(event);
 		};
-		
-		String.prototype.replaceAt=function(index, character) {
-			return this.substr(0, index) + character + this.substr(index+character.length);
-		}
-		
-		String.prototype.insert = function (index, string) {
-			if (index > 0) {
-				return this.substring(0, index) + string + this.substring(index, this.length);
-			} else {
-				return string + this;
-			}
-		};
-		
-		sd.bindjValid(base);
 		
 		/*
 		*	Returns the value without mask or regular expression
@@ -457,5 +405,7 @@
 		$.fn.unjValid = function() {
 			sd.destroyEvents(this);
 		};
+		
+		sd.bindjValid(base);
     };
 })(jQuery);

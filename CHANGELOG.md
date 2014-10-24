@@ -3,6 +3,8 @@
 ### 1.0.9
 * Added placeholder option
 * Some callback functions works
+* Delete functions that doesn't work
+* Added blur event support
 
 ### 1.0.8
 * Added unjValid
