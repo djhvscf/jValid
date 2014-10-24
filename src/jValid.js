@@ -1,6 +1,6 @@
  /**
  * jvalid.js
- * @version: v1.0.8
+ * @version: v1.0.9
  * @author: Dennis Hernández
  * @webSite: http://djhvscf.github.io/Blog
  *
@@ -42,9 +42,10 @@
 			  behaviorRegExp:  false,
               live:true,
 			  ignoredKeys: [8, 9, 13, 35, 36, 37, 39, 46],
+			  placeholder: '_-____-____',
 			  onError: '',
 			  onComplete: '',
-			  onChanged: ''
+			  onChange: ''
 		}, 
 		defaultEvents = 'keypress paste',
 		eventsType = {
@@ -181,6 +182,26 @@
 			},
 			
 			/*
+			* This functions call the callbacks functions
+			*/
+			callbacks: function (e) {
+                var val = sd.inputVal(),
+                    //changed = val !== old_value,
+                    changed = true,
+					defaultArgs = [val, e, base, options],
+                    callback = function(name, criteria, args) {
+                        if (typeof(options[name]) === "function" && criteria) {
+                            options[name].apply(this, args);
+                        }
+                    };
+
+                //callback('onChanged', changed === true, defaultArgs);
+                //callback('onKeyPress', changed === true, defaultArgs);
+                callback('onComplete', val.length === options.regex.length, defaultArgs);
+                //callback('onError', p.invalid.length > 0, [val, e, el, p.invalid, options]);
+            },
+			
+			/*
 			*	Working on it
 			*/
 			getNextCharacter: function(currentPos) {
@@ -252,7 +273,8 @@
 				} else {
 					var jqueryV = sd.getjQueryVersion(), 
 						input = $(inputObject), callback;
-					
+						input.get(0).placeholder = options.placeholder;
+						
 					if(options.behaviorRegExp){
 						callback = valid;
 					} else {
@@ -349,7 +371,7 @@
             if (newRegex.test(keyString)) {
 				return true;
             } else if (typeof(options.onError) === 'function') {
-				options.onError.call(this, keyString);
+				//Error and callback
             }
             if (event.type === eventsType.after_paste.toString()) {
 				sd.inputVal(base.data('value_before_paste'));
@@ -363,7 +385,7 @@
 		function validMask(event) {
 			var actualValue = sd.inputVal(),
 				keyString = sd.getKeyCode(event);
-				
+			
 			if (event.ctrlKey || event.altKey) {
 				return;
 			}
@@ -374,7 +396,7 @@
 				}
 				
 				if(actualValue.length < maxCharac) {
-					
+					sd.callbacks(event);
 					switch (options.regex.charAt(sd.getPosition())) {
 						case "0":
 							if(sd.isNumeric(keyString)) {

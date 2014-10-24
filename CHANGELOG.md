@@ -1,5 +1,9 @@
 ## ChangeLog
 
+### 1.0.9
+* Added placeholder option
+* Some callback functions works
+
 ### 1.0.8
 * Added unjValid
 * Fixed some bugs
