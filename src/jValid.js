@@ -317,76 +317,34 @@
 				return;
 			}
 			
-            //if (event.type === eventsType.keydown.toString()) {
+            if (event.type === eventsType.keydown.toString()) {
 				if(typeof(keyString) === 'string') {
-					var buf = [], mlen = 0, vlen= 0, check = function () {
-                        return mlen < maxCharac && vlen < actualValue.length;
-                    };	
-
-						while(check()){				
-							var maskPattern = defaultMasks[options.regex.charAt(mlen)], vale = actualValue.charAt(vlen);
-								if(maskPattern)
-								{
-									if(vale.match(maskPattern.pattern)) {
-										if(actualValue.length < maxCharac) {
-											 sd.callGetNextCharacter();
-											 buf.push(vale);
-										} else {
-											return false;
-										}
-									} else { 
-									}
-								} else {
-								}	
-							mlen += 1;
-							vlen += 1;
-						}					
-					/*if(actualValue.length < maxCharac) {
-						/*var maskPattern = defaultMasks[options.regex.charAt(sd.getPosition())];
-						if(maskPattern)
-						{
-							if(keyString.match(maskPattern.pattern)) {
-								if(actualValue.length < maxCharac) {
-									return sd.callGetNextCharacter();
-								}
-							} else { 
+					switch (options.regex.charAt(sd.getPosition())) {
+						case "0":
+							if(sd.isNumeric(keyString)) {
+								return sd.callGetNextCharacter();
+							} else {
 								return false;
 							}
-						} else {
-							return false;
-						}*/
-						
-						/*switch (options.regex.charAt(sd.getPosition())) {
-							case "0":
-								if(sd.isNumeric(keyString)) {
-									return sd.callGetNextCharacter();
-								} else {
-									return false;
-								}
-							case "S":
-								if(globalRegExpMay.test(keyString)) {
-									return sd.callGetNextCharacter();
-								} else {
-									return false;
-								}
-							case "s":
-								if(globalRegExpMin.test(keyString)) {
-									return sd.callGetNextCharacter();
-								} else {
-									return false;
-								}
-							default:
+						case "S":
+							if(globalRegExpMay.test(keyString)) {
+								return sd.callGetNextCharacter();
+							} else {
 								return false;
-						};
-					} else {
-						return false;
-					}*/
-
+							}
+						case "s":
+							if(globalRegExpMin.test(keyString)) {
+								return sd.callGetNextCharacter();
+							} else {
+								return false;
+							}
+						default:
+							return false;
+					};
 				} else {
 					return keyString;
 				}
-			//} else 
-			if (event.type === eventsType.blur.toString()) {
+			} else if (event.type === eventsType.blur.toString()) {
 				oldValue = sd.inputVal();
 			}
 			
