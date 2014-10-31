@@ -43,9 +43,9 @@
               live:true,
 			  ignoredKeys: [8, 9, 13, 35, 36, 37, 39, 46],
 			  placeholder: '',
-			  onError: '',
-			  onComplete: '',
-			  onChange: ''
+			  onError: $.noop,
+			  onComplete: $.noop,
+			  onChange: $.noop
 		};
 		
 		/*		
