@@ -29,7 +29,7 @@ This plugin has options and sets default values:
 Examples
 =============
  
- http://djhvscf.github.io/Blog/experiments/valid.html
+ http://djhvscf.github.io/jValid/
 
 Dependencies
 =============
